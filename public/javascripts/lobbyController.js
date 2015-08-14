@@ -13,7 +13,7 @@ BattleShipApp.controller('LobbyController', function($scope)
 	controller.numRounds = 1;
 	controller.shootTargetCellId = '';
 	controller.gameMode = 'not started';
-	controller.shotFiredThisTurn = false;
+	controller.shotFiredThisTurn = true;
 	controller.gameStatus = 'Setting up game, please place your ships.';
 	controller.hitQueue = -1;
 	controller.challengeResponse = '';
@@ -65,7 +65,12 @@ BattleShipApp.controller('LobbyController', function($scope)
 		{
 			controller.gameMode = 'play';
 			if(controller.shootTargetCellId == '')
-				controller.gameStatus = 'Choose a target square';
+			{
+				if(controller.shotFiredThisTurn == true)
+					controller.gameStatus = "Waiting for opponent...";
+				else if(controller.shotFiredThisTurn == false)
+					controller.gameStatus = "Choose a target";
+			}
 			if(controller.hitQueue !== -1)
 			{
 				controller.checkHit(controller.hitQueue);
@@ -87,11 +92,14 @@ BattleShipApp.controller('LobbyController', function($scope)
 	{
 		if(controller.shotFiredThisTurn == false && controller.gameMode === 'play')
 		{
-			$('#nextRoundButton').prop('disabled', false);
-			$('#nextRoundButton').toggleClass('acceptButton declineButton');
+			controller.removeAnyPreviousTarget();
+			if($('#nextRoundButton').hasClass('declineButton') == true)
+			{
+				$('#nextRoundButton').prop('disabled', false);
+				$('#nextRoundButton').toggleClass('acceptButton declineButton');
+			}
 			cell.type = 'shootTarget';
 			controller.shootTargetCellId = cell.index;
-			controller.shotFiredThisTurn = true;
 			controller.gameStatus = 'Ready to fire';
 			return true;
 		}
@@ -100,6 +108,7 @@ BattleShipApp.controller('LobbyController', function($scope)
 	
 	controller.fireButton = function()
 	{
+		controller.shotFiredThisTurn = true;
 		$('#nextRoundButton').prop('disabled', true);
 		$('#nextRoundButton').toggleClass('declineButton acceptButton');
 		controller.socket.emit('shootCell', controller.shootTargetCellId);
@@ -126,6 +135,11 @@ BattleShipApp.controller('LobbyController', function($scope)
 		controller.shotFiredThisTurn = false;
 		controller.resetShotTarget();
 		$scope.$apply();
+	}
+	
+	controller.firstRound = function()
+	{
+		controller.shotFiredThisTurn = false;
 	}
 	
 	controller.victory = function()
@@ -221,7 +235,6 @@ BattleShipApp.controller('LobbyController', function($scope)
 		}
 		
 		var count = 0;
-		var shipHit = false;
 		for(var row in controller.gameBoard)
 			for(var cell in controller.gameBoard[row])
 			{
@@ -232,18 +245,17 @@ BattleShipApp.controller('LobbyController', function($scope)
 						controller.gameBoard[row][cell].type = 'shipwreck';
 						controller.numShips--;
 						controller.socket.emit('sankShip', index);
-						shipHit = true;
 						$scope.$apply();
 					}
 					else if(controller.gameBoard[row][cell].type == 'watertile')
 					{
 						controller.gameBoard[row][cell].type = 'missedShot';
+						controller.socket.emit('missedShip', index);
 						$scope.$apply();
 					}
 				}
 				count += 1;
 			}
-		if(shipHit == false) controller.socket.emit('missedShip', index);
 	}
 	
 	controller.checkVictoryStatus = function()
@@ -254,7 +266,7 @@ BattleShipApp.controller('LobbyController', function($scope)
 		}
 	}
 	
-	controller.updateEnemyBoard = function(index)
+	controller.updateEnemyBoard = function(index, type)
 	{
 		var count = 0;
 		for(var row in controller.enemyGameBoard)
@@ -262,26 +274,24 @@ BattleShipApp.controller('LobbyController', function($scope)
 			{
 				if (count === index)
 				{
-					controller.enemyGameBoard[row][cell].type = 'shipwreck';
+					controller.enemyGameBoard[row][cell].type = type;
 					$scope.$apply();
 				}
 				count += 1;
 			}
 	}
 	
-	controller.missedShip = function(index)
+	controller.removeAnyPreviousTarget = function()
 	{
-		var count = 0;
 		for(var row in controller.enemyGameBoard)
 			for(var cell in controller.enemyGameBoard[row])
 			{
-				if (count === index)
+				if (controller.enemyGameBoard[row][cell].type === 'shootTarget')
 				{
-					controller.enemyGameBoard[row][cell].type = 'missedShot';
-					$scope.$apply();
+					controller.enemyGameBoard[row][cell].type = 'watertile';
 				}
-				count += 1;
 			}
+		$scope.$apply();
 	}
 	
 	controller.clearChallengeMessage = function()
@@ -301,9 +311,9 @@ BattleShipApp.controller('LobbyController', function($scope)
 	controller.showVictory = function() { $('.victory').show();};
 	
 	controller.socket.on('declinedChallenge', controller.clearChallengeMessage);
-	controller.socket.on('missedShip', controller.missedShip);
 	controller.socket.on('updateEnemyBoard', controller.updateEnemyBoard);
 	controller.socket.on('checkHit', controller.checkHit);
+	controller.socket.on('firstRound', controller.firstRound);
 	controller.socket.on('nextRound', controller.nextRound);
 	controller.socket.on('victory', controller.victory);
 	controller.socket.on('defeat', controller.defeat);

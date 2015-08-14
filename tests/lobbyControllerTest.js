@@ -309,8 +309,18 @@ describe('lobbyControllerTests', function()
 		var cell = { type: 'a string', index: 1};
 		controller.gameMode = 'init';
 		controller.numShips = 4;
+		controller.shotFiredThisTurn = false;
 		controller.placeShip(cell);
-		expect(controller.gameStatus).equals('Choose a target square');
+		expect(controller.gameStatus).equals('Choose a target');
+	});
+	it('placeShip should set status if this is last ship to be placed', function()
+	{
+		var cell = { type: 'a string', index: 1};
+		controller.gameMode = 'init';
+		controller.numShips = 4;
+		controller.shotFiredThisTurn = true;
+		controller.placeShip(cell);
+		expect(controller.gameStatus).equals('Waiting for opponent...');
 	});
 	it('placeShip should not set status if target is already picked', function()
 	{
@@ -423,7 +433,7 @@ describe('lobbyControllerTests', function()
 	it('updateEnemyBoard should set the recieved index to a shipwreck', function()
 	{
 		controller.createGameBoard();
-		controller.updateEnemyBoard(25);
+		controller.updateEnemyBoard(25, 'shipwreck');
 		expect(controller.enemyGameBoard[2][5].type).equals('shipwreck');
 	});
 	
@@ -437,7 +447,7 @@ describe('lobbyControllerTests', function()
 	it('missedShip should set the recieved index to a missedShot', function()
 	{
 		controller.createGameBoard();
-		controller.missedShip(25);
+		controller.updateEnemyBoard(25, 'missedShot');
 		expect(controller.enemyGameBoard[2][5].type).equals('missedShot');
 	});
 	
@@ -461,5 +471,19 @@ describe('lobbyControllerTests', function()
 	{
 		controller.gameMode = 'defeat';
 		expect(controller.victory()).equals(false);
+	});
+	
+	it('firstRound should set fired this turn to false', function()
+	{
+		controller.firstRound();
+		expect(controller.shotFiredThisTurn).equals(false);
+	});
+	
+	it('removeAnyPreviousTarget should change all shootTargets to watertiles', function()
+	{
+		controller.createGameBoard();
+		controller.enemyGameBoard[2][5].type = 'shootTarget';
+		controller.removeAnyPreviousTarget();
+		expect(controller.enemyGameBoard[2][5].type).equals('watertile');
 	});
 });

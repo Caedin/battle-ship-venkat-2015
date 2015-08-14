@@ -75,6 +75,15 @@ var SocketHandler = function(io)
 			lobbyState.removeUserFromLobby(pair.player1);
 			lobbyState.removeUserFromLobby(pair.player2);
 			socketHandler.updateLobby();
+			
+			socket.pickRandomPlayerToStart(acceptor, challenger);
+		}
+		
+		socket.pickRandomPlayerToStart = function(player1, player2)
+		{
+			var rand = Math.random()
+			if(rand >= 0.5)	player1.emit('firstRound');
+			else player2.emit('firstRound');
 		}
 		
 		socket.shootCell = function(index)
@@ -85,31 +94,14 @@ var SocketHandler = function(io)
 		
 		socket.sankShip = function(index)
 		{
-			socket.opponent.emit('updateEnemyBoard', index);
-			socket.missedShip(-1);
+			socket.opponent.emit('updateEnemyBoard', index, 'shipwreck');
+			socket.emit('nextRound');
 		}
 		
 		socket.missedShip = function(index)
 		{
-			if(index < 0)
-				if(socket.fired == true && socket.opponent.fired == true)
-				{
-					socket.emit('nextRound');
-					socket.opponent.emit('nextRound');
-					socket.fired = false;
-					socket.opponent.fired = false;
-				}
-			if(index >= 0)
-			{
-				socket.opponent.emit('missedShip', index);
-				if(socket.fired == true && socket.opponent.fired == true)
-				{
-					socket.emit('nextRound');
-					socket.opponent.emit('nextRound');
-					socket.fired = false;
-					socket.opponent.fired = false;
-				}
-			}
+			socket.opponent.emit('updateEnemyBoard', index, 'missedShot');
+			socket.emit('nextRound');
 		}
 		
 		socket.defeat = function()

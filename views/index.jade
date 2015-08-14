@@ -15,14 +15,13 @@ html(ng-app = "BattleShipApp")
 			div.menu
 				center
 					h1 Battle Ship
-					p
+					p 
 						b Username: 
 						input(ng-model = "controller.potentialUserName")
 					p 
 						button.acceptButton(ng-click = "controller.queryLogin()")
 					p
-						b
-							label {{ controller.loginError }}
+						label {{ controller.loginError }}
 			
 		
 		div.lobby

@@ -253,20 +253,29 @@ describe('sockets tests', function()
 		expect(typeof testSocket.map['sankShip']).equals('function');
 	});
 	
-	it('sankShip should emit updateEnemyBoard', function()
+	it('sankShip should send next round and update enemy boad', function()
 	{
-		var called = true;
 		io.map['connection'](testSocket);
+		
 		testSocket.opponent = {};
-		testSocket.opponent.emit = function(event, message)
+		var updateEnemyBoardCalled = false;
+		var newRoundP2 = false;
+		
+		testSocket.opponent.emit = function(event, index, type)
 		{
-			if(event === 'updateEnemyBoard')
-				if(message === 25)
-					called = true;
+			if(event == 'updateEnemyBoard' && index == 2 && type == 'shipwreck')
+				updateEnemyBoardCalled = true;
+		}
+		testSocket.emit = function(event)
+		{
+			if(event === 'nextRound')
+				newRoundP2 = true;
 		}
 		
-		testSocket.sankShip(25);
-		expect(called).equals(true);
+		testSocket.sankShip(2);
+		
+		expect(newRoundP2).equals(true);
+		expect(updateEnemyBoardCalled).equals(true);
 	});
 	
 	it('missedShip should register an event', function()
@@ -275,24 +284,18 @@ describe('sockets tests', function()
 		expect(typeof testSocket.map['missedShip']).equals('function');
 	});
 	
-	it('missedShip check if both ships have fired before events.', function()
+	it('missedShip should send next round and update enemy boad', function()
 	{
 		io.map['connection'](testSocket);
 		
 		testSocket.opponent = {};
-		testSocket.opponent.fired = true;
-		testSocket.fired = true;
-		
-		var newRoundP1 = false;
+		var updateEnemyBoardCalled = false;
 		var newRoundP2 = false;
-		var missedEmitSent = false;
 		
-		testSocket.opponent.emit = function(event)
+		testSocket.opponent.emit = function(event, index, type)
 		{
-			if(event === 'nextRound')
-				newRoundP1 = true;
-			if(event === 'missedShip')
-				missedEmitSent = true;
+			if(event == 'updateEnemyBoard' && index == 2 && type == 'missedShot')
+				updateEnemyBoardCalled = true;
 		}
 		testSocket.emit = function(event)
 		{
@@ -302,73 +305,8 @@ describe('sockets tests', function()
 		
 		testSocket.missedShip(2);
 		
-		expect(newRoundP1).equals(true);
 		expect(newRoundP2).equals(true);
-		expect(missedEmitSent).equals(true);
-	});
-	it('missedShip check if both ships have fired before events (index == -1).', function()
-	{
-		io.map['connection'](testSocket);
-		
-		testSocket.opponent = {};
-		testSocket.opponent.fired = true;
-		testSocket.fired = true;
-		
-		var newRoundP1 = false;
-		var newRoundP2 = false;
-		var missedEmitSent = false;
-		
-		
-		testSocket.opponent.emit = function(event)
-		{
-			if(event === 'nextRound')
-				newRoundP1 = true;
-			if(event === 'missedShip')
-				missedEmitSent = true;
-		}
-		testSocket.emit = function(event)
-		{
-			if(event === 'nextRound')
-				newRoundP2 = true;
-		}
-		
-		testSocket.missedShip(-1);
-		
-		expect(newRoundP1).equals(true);
-		expect(newRoundP2).equals(true);
-		expect(missedEmitSent).equals(false);
-	});
-	
-	it('missedShip should send missed event, but nothing else if other player has not fired yet.', function()
-	{
-		io.map['connection'](testSocket);
-		
-		testSocket.opponent = {};
-		testSocket.opponent.fired = false;
-		testSocket.fired = true;
-		
-		var newRoundP1 = false;
-		var newRoundP2 = false;
-		var missedEmitSent = false;
-		
-		testSocket.opponent.emit = function(event)
-		{
-			if(event === 'nextRound')
-				newRoundP1 = true;
-			if(event === 'missedShip')
-				missedEmitSent = true;
-		}
-		testSocket.emit = function(event)
-		{
-			if(event === 'nextRound')
-				newRoundP2 = true;
-		}
-		
-		testSocket.missedShip(2);
-		
-		expect(newRoundP1).equals(false);
-		expect(newRoundP2).equals(false);
-		expect(missedEmitSent).equals(true);
+		expect(updateEnemyBoardCalled).equals(true);
 	});
 	
 	it('defeat should send a defeat and victory emit to players', function()
@@ -409,6 +347,26 @@ describe('sockets tests', function()
 				called = true;
 		}
 		testSocket.declineChallenge();
+		expect(called).equals(true);
+	});
+	
+	
+	it('pickRandomPlayerToStart should call emit first round for one of the players', function()
+	{
+		var called = false;
+		io.map['connection'](testSocket);
+		testSocket.opponent = {};
+		testSocket.opponent.emit = function(event, message)
+		{
+			if(event === 'firstRound')
+				called = true;
+		}
+		testSocket.emit = function(event, message)
+		{
+			if(event === 'firstRound')
+				called = true;
+		}
+		testSocket.pickRandomPlayerToStart(testSocket, testSocket.opponent);
 		expect(called).equals(true);
 	});
 });
