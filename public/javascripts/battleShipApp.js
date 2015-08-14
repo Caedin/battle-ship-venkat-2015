@@ -1,0 +1,1 @@
+var BattleShipApp = angular.module('BattleShipApp', []);

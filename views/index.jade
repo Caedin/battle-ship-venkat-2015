@@ -1,0 +1,102 @@
+doctype html
+html(ng-app = "BattleShipApp")
+	head
+		link(rel='stylesheet', href='/stylesheets/style.css')
+		script(src="https://cdn.socket.io/socket.io-1.3.5.js")
+		script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js")
+		script(src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js")
+		script(src="./javascripts/battleShipApp.js")
+		script(src="./javascripts/lobbyController.js")
+		link(href="https://fonts.googleapis.com/css?family=Lobster", rel="stylesheet", type="text/css")
+		link(href="https://fonts.googleapis.com/css?family=Cabin", rel="stylesheet", type="text/css")
+		
+	body(ng-controller = "LobbyController as controller")
+		div.login
+			div.menu
+				center
+					h1 Battle Ship
+					p
+						b Username: 
+						input(ng-model = "controller.potentialUserName")
+					p 
+						button.acceptButton(ng-click = "controller.queryLogin()")
+					p
+						b
+							label {{ controller.loginError }}
+			
+		
+		div.lobby
+			div.menu
+				center
+					h1 Game Lobby
+					table
+						tr
+							th Available Players
+							th Issue Challenge
+						tr(ng-repeat = "player in controller.lobbyList")
+							td {{ player }}
+							td 
+								button.acceptButton(ng-click = "controller.issueChallenge(player)")
+					p 
+						b {{ controller.challengeResponse }}
+						
+		div.challenge
+			div.menu
+				h1 Challenge Received
+				p
+					b {{ controller.challengingPlayer }} has challenged you to a match!
+				span
+					button.acceptButton(ng-click = "controller.acceptChallenge()")
+				span
+					button.declineButton(ng-click = "controller.declineChallenge()")
+		
+		div.gameArea
+			div.gameBoard
+				table.gameTable
+					tr(ng-repeat = "row in controller.gameBoard track by $index") 
+						td.waterRow(ng-repeat = "cell in row track by $index")
+							div.waterSquarePlaceShips(ng-if = "cell.type == 'watertile' && controller.gameMode == 'init'", ng-click = "controller.placeShip(cell)")
+							div.waterSquare(ng-if = "cell.type == 'watertile' && (controller.gameMode == 'play' || controller.gameMode == 'victory' || controller.gameMode == 'defeat')")
+							div.shipSquare(ng-if = "cell.type == 'ship'")
+							div.shipWreckSquare(ng-if = "cell.type == 'shipwreck'")
+							div.missedShipSquare(ng-if = "cell.type == 'missedShot'")
+							
+			div.gameInfo
+				div.playerTitle
+					h3	Player
+				div.enemyTitle
+					h3 Opponent
+				div.gameControls
+					center
+						b
+							p Number of ships: {{ controller.numShips }}
+							p {{ controller.gameStatus }}
+							button.declineButton#nextRoundButton(disabled, ng-click="controller.fireButton()")
+							
+				div.victory
+					b
+						center
+							div.title 
+								h3 VICTORY!
+							p Ships: {{ controller.numShips }}
+							p Turns: {{ controller.numRounds }}
+						
+				div.defeat
+					b
+						center
+							div.title 
+								h3 DEFEAT!
+							p Ships: {{ controller.numShips }}
+							p Turns: {{ controller.numRounds }}
+			
+			div.enemyGameBoard
+				table.gameTable
+					tr(ng-repeat = "row in controller.enemyGameBoard track by $index") 
+						td.waterRow(ng-repeat = "cell in row track by $index")
+							div.waterSquareShoot(ng-if = "cell.type == 'watertile' && controller.shotFiredThisTurn == false && controller.gameMode == 'play'", ng-click = "controller.shootCell(cell)")
+							div.waterSquare(ng-if = "cell.type == 'watertile' && controller.shotFiredThisTurn == false && (controller.gameMode == 'init' || controller.gameMode == 'victory' || controller.gameMode == 'defeat')")
+							div.waterSquare(ng-if = "cell.type == 'watertile' && controller.shotFiredThisTurn == true")
+							div.waterSquareTarget(ng-if = "cell.type == 'shootTarget'")
+							div.shipWreckSquare(ng-if = "cell.type == 'shipwreck'")
+							div.missedShipSquare(ng-if = "cell.type == 'missedShot'")
+		
