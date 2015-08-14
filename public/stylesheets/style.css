@@ -76,7 +76,7 @@ table th
 	margin-left: auto;
 	margin-right: auto;
 	text-align: left;
-	border-bottom-style: solid;
+	border-bottom-style: dotted;
 	border-bottom-width: 1px;
 }
 
@@ -112,7 +112,7 @@ span
 	border-width: 10px;
 	border-style: ridge;
 	border-color: wheat;
-	height:600px;
+	height:620px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -196,6 +196,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 
 .waterSquareTarget
@@ -209,6 +212,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 
 .waterSquareShoot
@@ -222,6 +228,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 .waterSquareShoot:hover
 {
@@ -240,6 +249,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 
 .waterSquarePlaceShips:hover
@@ -259,6 +271,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 
 .shipSquare
@@ -272,6 +287,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 
 .missedShipSquare
@@ -285,6 +303,9 @@ span
 	margin-right: 0px;
 	padding-left: 0px;
 	padding-right: 0px;
+	border-width: 1px;
+	border-color: black;
+	border-style: dotted;
 }
 
 
